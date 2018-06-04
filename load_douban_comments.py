@@ -62,9 +62,9 @@ class get_douban_spider(object):
                     votes = commentInfo.find("span", "comment-vote").find("span", "votes").string
                     com_info = commentInfo.find("span", "comment-info")
                     name = com_info.find("a").string
-                    if self.check_name(name=name):#以name为index去重已经下载的数据
-                        self.logger.info("current data(name:%s) has inserted!"%name)
-                        continue
+#                     if self.check_name(name=name):#以name为index去重已经下载的数据
+#                         self.logger.info("current data(name:%s) has inserted!"%name)
+#                         continue
                     href = com_info.find("a").get("href")
                     commentPeoInfo = self.html_parse(baseurl=href)
                     install_time = list(commentPeoInfo.find("div", "user-info").find("div", "pl").stripped_strings)[-1][:-2]
