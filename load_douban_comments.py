@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 """
 -------------------------------------------------
-   File Name：     ProxyManager.py  
+   File Name：     load_douban_comments.py  
    Description：
 -------------------------------------------------
 __author__ = 'ZH'
@@ -13,7 +13,7 @@ import logging, loggerConfig
 from pymongo import MongoClient
 import time, random
 
-loggerConfig.setup_logging(default_path="./log.yaml")#配置loger
+loggerConfig.setup_logging(default_path="./log.yaml")#配置logger
 
 class get_douban_spider(object):
 
