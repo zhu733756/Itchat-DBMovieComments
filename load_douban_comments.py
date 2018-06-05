@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 """
 -------------------------------------------------
-   File Name：     load_douban_comments.py  
+   File Name：     ProxyManager.py  
    Description：
 -------------------------------------------------
 __author__ = 'ZH'
@@ -36,6 +36,7 @@ class get_douban_spider(object):
         #开启链接monogo数据库
         try:
             self.client = MongoClient("localhost:27017", connect=True)["testdb"]["DouBandb"]
+            self.logger.info("Start connect to mongodb...." )
         except Exception as e:
             self.logger.error("Failed to connect Mongodb:%s" % e)
 
@@ -46,17 +47,16 @@ class get_douban_spider(object):
         :param params: params参数
         :return:
         '''
-
+        self.logger.info("Get currenturl:%s" % baseurl)
         html = self.s.get(baseurl, headers=self.headers,cookies=self.cookies)
         if html.status_code==200:
-            if html.url != baseurl:
+            if "lock" in html.url:
                 return False
             response = BeautifulSoup(html.text, "html.parser")
             return response
         else:
+            self.logger.error("Valid connection,Click here(%s) to try again in webdriver!" % baseurl)
             return False
-
-
     def get_page_comment(self):
         '''
         每一个参数字典对应一个url，请求对应url页面后解析需要的data存入mongodb
@@ -95,8 +95,6 @@ class get_douban_spider(object):
                     self.logger.info("Successfully insert current downloaded data!")
                 except Exception as e:
                     self.logger.error("Failed to insert current data to Mongodb:{}".format(e))
-        else:
-            time.sleep(random.choice([5, 6, 7, 8, 9]))
 
     def check_name(self, name):
         '''
@@ -113,22 +111,22 @@ class get_douban_spider(object):
         '''
 
         content = self.html_parse(self.url)
-        if content:
-            while 1:
+        while 1:
+            if content:
                 commentlist = content.find_all("div", "comment")
-                yield commentlist
+                self.logger.info("Get %s comments"%len(commentlist))
+                for comment in commentlist:
+                    yield comment
                 time.sleep(random.choice([5, 6, 7, 8, 9]))
                 nextPage = content.find("a", "next").get("href")
                 currentUrl = self.url + nextPage
-                self.logger.info("Get nextPage:%s" % currentUrl)
                 content = self.html_parse(baseurl=currentUrl)
-                if not content:
-                    break
             else:
-                self.s.close()
+                break
         else:
-            self.logger.error("Valid connection,Click here(%s) to try again in webdriver!" % self.url)
-            sys.exit(0)
+            self.s.close()
+            self.logger.info("Finished!")
+
 
 
 if "__main__" == __name__:
