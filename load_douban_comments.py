@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 """
 -------------------------------------------------
-   File Name：     ProxyManager.py  
+   File Name：     load_db.py  
    Description：
 -------------------------------------------------
 __author__ = 'ZH'
