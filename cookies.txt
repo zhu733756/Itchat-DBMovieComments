@@ -1,5 +1,7 @@
 
-#登录豆瓣后，点F12或者检查，打开开发者工具，按F5显示的response的cookie项，注意不要把“cookie：”复制下来，只需要把cookie：后面的有效字符copy下来
+#登录豆瓣后，点F12或者检查，打开开发者工具，按F5显示的response的cookie项；
+#注意不要把“cookie：”复制下来，只需要把cookie：后面的有效字符copy下来；
+#把复制下来的cookie值放入这个文件夹，后面需要cookie验证。
 
 
 
