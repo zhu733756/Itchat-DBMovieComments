@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 """
 -------------------------------------------------
-   File Name：     kill_data.py
+   File Name：  
    Description：
 -------------------------------------------------
 __author__ = 'ZH'
