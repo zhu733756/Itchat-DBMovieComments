@@ -4,11 +4,11 @@ from MovieComments.items import MoviecommentsItem
 import logging,time,random
 from scrapy_redis.spiders import RedisCrawlSpider
 
-class DoubanSpider(scrapy.Spider):
+class DoubanSpider(RedisCrawlSpider):
 
     name = 'douban'
     allowed_domains = ['movie.douban.com','www.douban.com']
-    # redis_key = 'douban_spider:start_urls'
+    redis_key = 'douban_spider:start_urls'
     logger = logging.getLogger(__name__)
 
     def parse(self, response):

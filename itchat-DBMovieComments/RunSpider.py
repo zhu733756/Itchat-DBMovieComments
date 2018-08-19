@@ -9,4 +9,4 @@ __author__ = 'ZH'
 """
 from scrapy import cmdline
 
-cmdline("lpush douban_spider:start_urls %s"%CrawlUrl)
+cmdline.execute("lpush douban_spider:start_urls %s"%CrawlUrl)

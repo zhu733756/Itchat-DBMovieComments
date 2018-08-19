@@ -2,62 +2,78 @@
 # !/usr/bin/env python
 """
 -------------------------------------------------
-   File Name：     ProxyManager.py  
+   File Name：
    Description：
 -------------------------------------------------
 __author__ = 'ZH'
 """
 import itchat
-import requests
+import requests,json
 from GetMobSubject import getMovieTopic
 from GetMovieInfo import *
 from collections import deque
+from scrapy import cmdline
 
 class ItchatRoom(object):
 
     def __init__(self):
         self._flag=0
-        self.topicUrls={}
-        self.deque=deque(["kw"],maxlen=2)
+        self.topicUrls={}#用来采集爬取的关键词信息
+        self.dequelist={}#用来储存用户信息
 
     @classmethod
     def getResponse(self,msg):
+        '''
+        返回图灵机器人对话
+        :param msg: 用户输入的文本
+        :return:
+        '''
         api= 'http://www.tuling123.com/openapi/api'
         data = {
-            'key': '7c1ccc2786df4e1685dda9f7a98c4ec9',
+            'key': '7c1ccc2786df4e1685dda9f7a98c4ec9',#注册图灵机器人得到的key
             'info': msg,
             'userid': 'wechat-robot',
         }
         r = requests.post(api, data=data).json()
         return r["text"] or msg
 
-    @property
-    def flag(self):
-        return self._flag
-
-    @flag.setter
-    def flag(self,flag):
-        self._flag=flag
-
-    def get_nextAction(self,text,toName):
+    def get_nextAction(self,text,toName,user_deque):
+        '''
+        执行下一步操作
+        :param text:用户输入的文本
+        :param toName: 发送指令的用户名，需要返回的用户名
+        :return:
+        '''
         print("----")
-        print(self.deque)
+        print(user_deque)
         print(self.topicUrls)
         print("-------")
-        if self.deque[0] == "kw" and text != "back":
+        if user_deque[0] == "kw" and text != "back":
             self.get_keywords(text,toName)
-            self.deque.appendleft("info")
+            user_deque.appendleft("info")
         if text.isdigit():
-            self.get_info(text,toName)
-            self.deque.appendleft("crawl "+self.get_crawlUrl(text))
+            try:
+                self.get_info(text,toName)
+            except KeyError:
+                itchat.send("支持的key：1-{}".format(self.topicUrls),toName)
+            if text in self.topicUrls:
+                user_deque.appendleft("crawl "+self.get_crawlUrl(text))
         if text == "back":
             itchat.send("请重新输入关键词：",toName)
-            self.deque.appendleft("kw")
+            user_deque.appendleft("kw")
             self.topicUrls.clear()
-        if text=="crawl" and text in self.deque[0]:
-            itchat.send("Start crawl url: "+self.deque[0].split()[1],toName)
+        if text=="crawl" and text in user_deque[0]:
+            url=user_deque[0].split()[1]
+            itchat.send("Start crawl url: "+url,toName)
+            cmdline.execute("lpush douban_spider:start_urls %s"%url)
 
     def get_keywords(self,text,toName):
+        '''
+        用来返回指定关键词的最佳搜索结果
+        :param text: 用户输入文本
+        :param toName: 需要返回的用户名
+        :return:
+        '''
         movie_topic = getMovieTopic(text.strip())
         movieList = json.loads(movie_topic)
         item = []
@@ -67,6 +83,12 @@ class ItchatRoom(object):
         itchat.send("匹配详情(No.,title,score)如下:\n" + "\n".join(item), toName)
 
     def get_info(self,text,toName):
+        '''
+        用来返回搜索详情
+        :param text: 输入指令，要求为digit
+        :param toName: 需要返回的用户名
+        :return:
+        '''
         if self.topicUrls:
             if text not in self.topicUrls:
                 itchat.send("好像没有这个数值选项！",toName)
@@ -78,6 +100,11 @@ class ItchatRoom(object):
             itchat.send("请求出错！")
 
     def get_crawlUrl(self,text):
+        '''
+        用来捕获用户需要抓取的url
+        :param text: 需要返回的用户名
+        :return:
+        '''
         if self.topicUrls and self.topicUrls[text]:
             url = self.topicUrls[text]+"comments"
             return url
@@ -97,27 +124,33 @@ def text_reply(msg):
     toName = msg["ToUserName"]
     print(toName,fromName)
     print("-----------")
+    user_info = itchat_room.dequelist.setdefault(fromName, {})
+    user_info.setdefault("deque", deque(["kw"], maxlen=2))
+    user_info.setdefault("flag",0)
     if text in ("Esc", "ESC", "esc"):
         itchat.send("拜拜小主人~~~",fromName)
-        itchat.logout()
+        user_info["flag"]=0
+        if fromName == "filehelper":
+            itchat.logout()
     if text=="chat":
-        ItchatRoom.flag=0
-    if itchat_room.flag:
-        itchat_room.get_nextAction(text,fromName)
+        user_info["flag"]=0
+    if user_info["flag"]:
+        itchat_room.get_nextAction(text,fromName,user_info["deque"])
     else:
         itchat_room.get_tuling_reply(text,fromName)
-    if text in ("电影", "mv", "movie", "豆瓣") and not itchat_room.flag:
+    if text in ("电影", "mv", "movie", "豆瓣") and not user_info["flag"]:
         itchat.send("终于等到你,还好没放弃~~~"
                     "小可耐是不是迫不及待地想查看豆瓣电影分析？\n"
                     "官人别急，查询电影，请输入电影关键词：例如，钢铁侠\n"
                     "友情提示：如果小主想要退出本系统继续聊天，请输入chat；关闭聊天系统，请输入Esc。", fromName)
+        user_info["flag"]=1
         itchat.send("现在已经进入系统，请输入关键词：", fromName)
-        itchat_room.flag = 1
 
 if __name__ == "__main__":
 
     itchat.auto_login()
     itchat.run()
+    cmdline.execute("scrapy crawl douban")
 
 
 
