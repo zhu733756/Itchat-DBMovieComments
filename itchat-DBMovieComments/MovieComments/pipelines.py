@@ -6,13 +6,13 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import pymongo
 from MovieComments.items import MoviecommentsItem
+from scrapy.utils.project import get_project_settings
 
 class MoviecommentsPipeline(object):
 
     def __init__(self,host,port,dbname,table):
         self.host = host
         self.port = port
-        self.dbname=dbname
         self.table=table
 
     @classmethod
@@ -21,13 +21,13 @@ class MoviecommentsPipeline(object):
         return cls(
             host=settings.get("MONGODB_HOST"),
             port=settings.get("MONGODB_PORT"),
-            dbname=settings.get("MONGODB_DBNAME"),
             table=settings.get("MONGODB_TABLENAME")
         )
 
     def open_spider(self,spider):
         self.client = pymongo.MongoClient(host=self.host, port=self.port)
-        self.db= self.client[self.dbname]
+        dbname=spider.table
+        self.db= self.client[dbname]
 
     def process_item(self, item, spider):
         if isinstance(item, MoviecommentsItem):

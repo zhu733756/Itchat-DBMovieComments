@@ -55,7 +55,7 @@ class ItchatRoom(object):
             try:
                 self.get_info(text,toName)
             except KeyError:
-                itchat.send("支持的key：1-{}".format(self.topicUrls),toName)
+                itchat.send("好像没有这个数值选项！支持的数值选项：1-{}".format(self.topicUrls), toName)
             if text in self.topicUrls:
                 user_deque.appendleft("crawl "+self.get_crawlUrl(text))
         if text == "back":
@@ -90,8 +90,6 @@ class ItchatRoom(object):
         :return:
         '''
         if self.topicUrls:
-            if text not in self.topicUrls:
-                itchat.send("好像没有这个数值选项！",toName)
             url = self.topicUrls[text]
             t = html_response(url)
             itchat.send("电影阵容：\n"+getMovieInfo(t),toName)

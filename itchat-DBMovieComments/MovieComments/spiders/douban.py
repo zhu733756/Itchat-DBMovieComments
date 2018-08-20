@@ -3,15 +3,18 @@ import scrapy
 from MovieComments.items import MoviecommentsItem
 import logging,time,random
 from scrapy_redis.spiders import RedisCrawlSpider
+import re
 
 class DoubanSpider(RedisCrawlSpider):
 
     name = 'douban'
-    allowed_domains = ['movie.douban.com','www.douban.com']
+    # allowed_domains = ['movie.douban.com','www.douban.com']
     redis_key = 'douban_spider:start_urls'
     logger = logging.getLogger(__name__)
+    table = ""
 
     def parse(self, response):
+        self.table="Comments_"+re.search(r"\d+",response.url).group(0)
         time.sleep(random.choice([3,4,5]))
         pageContent=response.xpath('//div[@class="comment-item"]')
         nextUrl = response.xpath('//a[@class="next"]/@href').extract_first()
@@ -29,7 +32,7 @@ class DoubanSpider(RedisCrawlSpider):
                                  meta={"item":item},
                                  callback=self.parse_info)
         if nextUrl:
-            nextUrl=self.base_url+nextUrl
+            nextUrl=response.url+nextUrl
             self.logger.info("Next page:",nextUrl)
             yield scrapy.Request(url=nextUrl, callback=self.parse)
 

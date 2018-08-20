@@ -32,10 +32,10 @@ ITEM_PIPELINES = {
    'MovieComments.pipelines.MoviecommentsPipeline': 300,
 }
 
-# MONGODB_HOST = '127.0.0.1'
-# MONGODB_PORT = 27017
-# MONGODB_DBNAME = "DBMovie"
-# MONGODB_TABLENAME = "Comments_{id}"
+MONGODB_HOST = '127.0.0.1'
+MONGODB_PORT = 27017
+MONGODB_DBNAME = "DBMovie"
+
 #
 # SCHEDULER = "scrapy_redis.scheduler.Scheduler"
 # SCHEDULER_PERSIST = True
