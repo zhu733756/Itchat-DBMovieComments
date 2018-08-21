@@ -13,6 +13,7 @@ from GetMobSubject import getMovieTopic
 from GetMovieInfo import *
 from collections import deque
 from scrapy import cmdline
+from redis import StrictRedis,ConnectionPool
 
 class ItchatRoom(object):
 
@@ -20,6 +21,7 @@ class ItchatRoom(object):
         self._flag=0
         self.topicUrls={}#用来采集爬取的关键词信息
         self.dequelist={}#用来储存用户信息
+        self.redis=StrictRedis(connection_pool=ConnectionPool(host="localhost",port=6379))
 
     @classmethod
     def getResponse(self,msg):
@@ -65,7 +67,8 @@ class ItchatRoom(object):
         if text=="crawl" and text in user_deque[0]:
             url=user_deque[0].split()[1]
             itchat.send("Start crawl url: "+url,toName)
-            cmdline.execute("lpush douban_spider:start_urls %s"%url)
+            itchat.send("lpush douban_spider:start_urls %s"%url,"filehelper")
+            self.redis.lpush("douban_spider:start_urls",url)
 
     def get_keywords(self,text,toName):
         '''

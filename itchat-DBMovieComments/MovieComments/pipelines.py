@@ -7,13 +7,15 @@
 import pymongo
 from MovieComments.items import MoviecommentsItem
 from scrapy.utils.project import get_project_settings
+from scrapy_redis.spiders import signals
+from scrapy_redis.queue import SpiderQueue
 
 class MoviecommentsPipeline(object):
 
-    def __init__(self,host,port,dbname,table):
+    def __init__(self,host,port,db):
         self.host = host
         self.port = port
-        self.table=table
+        self.db=db
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -21,19 +23,19 @@ class MoviecommentsPipeline(object):
         return cls(
             host=settings.get("MONGODB_HOST"),
             port=settings.get("MONGODB_PORT"),
-            table=settings.get("MONGODB_TABLENAME")
+            db=settings.get("MONGODB_DBNAME"),
         )
 
     def open_spider(self,spider):
         self.client = pymongo.MongoClient(host=self.host, port=self.port)
-        dbname=spider.table
-        self.db= self.client[dbname]
+        tablename=spider.tablename
+        self.table= self.client[self.db][tablename]
 
     def process_item(self, item, spider):
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)
-                self.db[self.table].insert(info)
+                self.table.insert(info)
             except Exception as e:
                 pass
         return item
