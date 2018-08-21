@@ -17,31 +17,16 @@ class DoubanSpider(RedisSpider):
     def __init__(self,former_deque="",tablename="", *args, **kwargs):
 
         self.former_deque = former_deque
-        self.tablename= self.server.get(redis_key)
         super(DoubanSpider, self).__init__(*args, **kwargs)
-
-    def get_tablename(self,response):
-        tablename = "comments_" + re.findall(r".*?/(\d+)/comments.*?", response.urljoin(""))[0]
-        if tablename:
-            if len(self.former_deque):
-                if self.former_deque != tablename:
-                    itchat.send("Table(%s) is ok!"%self.former_deque,"filehelper")
-                    self.former_deque=tablename
-            else:
-                self.former_deque=tablename
-        print("========")
-        print(tablename)
-        print("========")
-        print(self.former_deque)
-        return tablename
 
     def parse(self, response):
         time.sleep(random.choice([3,4,5]))
-        self.tablename=self.get_tablename(response)
+
         pageContent=response.xpath('//div[@class="comment-item"]')
         nextUrl = response.xpath('//a[@class="next"]/@href').extract_first()
         for comments in pageContent:
             item = MoviecommentsItem()
+            item.collection="comments_{}".format(re.findall(r".*?/(\d+)/comments/.*?",response.urljoin(""))[0])
             item["name"] = comments.css("div.avatar a::attr(title)").extract_first()
             item["imgurl"]=comments.css("div.avatar img::attr(src)").extract_first()
             item["href"] = comments.css("div.avatar a::attr(href)").extract_first()

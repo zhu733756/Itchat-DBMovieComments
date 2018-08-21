@@ -28,14 +28,13 @@ class MoviecommentsPipeline(object):
 
     def open_spider(self,spider):
         self.client = pymongo.MongoClient(host=self.host, port=self.port)
-        tablename=spider.tablename
-        self.table= self.client[self.db][tablename]
+        self.table= self.client[self.db]
 
     def process_item(self, item, spider):
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)
-                self.table.insert(info)
+                self.table[item.collection].insert(info)
             except Exception as e:
                 pass
         return item
