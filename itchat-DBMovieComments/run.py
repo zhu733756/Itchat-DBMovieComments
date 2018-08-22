@@ -8,5 +8,7 @@
 __author__ = 'ZH'
 """
 from scrapy import cmdline
+from multiprocessing import Process
 
-cmdline.execute("lpush douban_spider:start_urls %s"%CrawlUrl)
+cmdline.execute("scrapy crawl douban".split())
+Process()
