@@ -9,6 +9,21 @@ __author__ = 'ZH'
 """
 from scrapy import cmdline
 from multiprocessing import Process
+from ItchatRoom import itchat
 
-cmdline.execute("scrapy crawl douban".split())
-Process()
+def start_spider(name="douban"):
+    cmdline.execute("scrapy crawl {} --nolog".format(name).split())
+
+def itchat_run():
+    itchat.auto_login(hotReload=True)
+    itchat.run()
+
+if __name__ == "__main__":
+
+    # p1=Process(target=start_spider,args=())
+    # p2=Process(target=itchat_run,args=())
+    # for p in (p1,p2):
+    #     p.start()
+    # for p in (p1, p2):
+    #     p.join()
+    start_spider()
