@@ -9,8 +9,7 @@ __author__ = 'ZH'
 """
 import itchat
 import requests,json
-from GetMobSubject import getMovieTopic
-from GetMovieInfo import *
+from GetMovieInfo import GetMvInfo
 from collections import deque
 from scrapy import cmdline
 from redis import StrictRedis,ConnectionPool
@@ -26,7 +25,7 @@ class ItchatRoom(object):
     @classmethod
     def getResponse(self,msg):
         '''
-        返回图灵机器人对话
+        返回图灵机器人对话内容
         :param msg: 用户输入的文本
         :return:
         '''
@@ -53,7 +52,9 @@ class ItchatRoom(object):
         if user_deque[0] == "kw" and text != "back":
             self.get_keywords(text,toName)
             user_deque.appendleft("info")
-        if text.isdigit():
+            if text.isdigit():#防止第一次输入数字导致没有经过用户选择就直接进入下一步
+                text = text+"_salt"
+        if text.isdigit() and user_deque[0] == "info":
             try:
                 self.get_info(text,toName)
             except KeyError:
@@ -67,8 +68,8 @@ class ItchatRoom(object):
         if text=="crawl" and text in user_deque[0]:
             url=user_deque[0].split()[1]
             itchat.send("Start crawl url: "+url,toName)
-            itchat.send("lpush douban_spider:start_urls %s"%url,"filehelper")
             self.redis.lpush("douban_spider:start_urls",url)
+            itchat.send("lpush douban_spider:start_urls %s" % url, "filehelper")
 
     def get_keywords(self,text,toName):
         '''
@@ -77,11 +78,12 @@ class ItchatRoom(object):
         :param toName: 需要返回的用户名
         :return:
         '''
-        movie_topic = getMovieTopic(text.strip())
+        movie_topic = get_movie_info.getMovieTopic(text)
+        print(movie_topic)
         movieList = json.loads(movie_topic)
         item = []
         for movieDic in movieList:
-            item.append(", ".join(list(movieDic.values())[:-1]))
+            item.append(",".join(list(movieDic.values())[:-1]))
             self.topicUrls.setdefault(movieDic["No"], movieDic["href"])
         itchat.send("匹配详情(No.,title,score)如下:\n" + "\n".join(item), toName)
 
@@ -94,11 +96,11 @@ class ItchatRoom(object):
         '''
         if self.topicUrls:
             url = self.topicUrls[text]
-            t = html_response(url)
-            itchat.send("电影阵容：\n"+getMovieInfo(t),toName)
-            itchat.send("内容简介：\n"+getShortSummary(t),toName)
+            info,summary=get_movie_info.getMovieInfo(url),get_movie_info.getShortSummary(url)
+            itchat.send("电影阵容：\n"+info,toName)
+            itchat.send("内容简介：\n"+summary,toName)
         else:
-            itchat.send("请求出错！")
+            itchat.send("请求出错！",toName)
 
     def get_crawlUrl(self,text):
         '''
@@ -110,28 +112,29 @@ class ItchatRoom(object):
             url = self.topicUrls[text]+"comments"
             return url
         else:
-            itchat.send("请求出错！")
+            itchat.send("请求出错！",toName)
 
     def get_tuling_reply(self,text,toName):
         itchat.send(self.getResponse(text),toName)
 
-
 itchat_room=ItchatRoom()
+get_movie_info=GetMvInfo()
 
 @itchat.msg_register(itchat.content.TEXT)
 def text_reply(msg):
     text = msg["Text"].strip()
     fromName=msg["FromUserName"]
     toName = msg["ToUserName"]
-    print(toName,fromName)
+    print(fromName,toName)
     print("-----------")
     user_info = itchat_room.dequelist.setdefault(fromName, {})
     user_info.setdefault("deque", deque(["kw"], maxlen=2))
     user_info.setdefault("flag",0)
     if text in ("Esc", "ESC", "esc"):
         itchat.send("拜拜小主人~~~",fromName)
+        get_movie_info.close_session()
         user_info["flag"]=0
-        if fromName == "filehelper":
+        if toName == "filehelper":
             itchat.logout()
     if text=="chat":
         user_info["flag"]=0
@@ -145,13 +148,10 @@ def text_reply(msg):
                     "官人别急，查询电影，请输入电影关键词：例如，钢铁侠\n"
                     "友情提示：如果小主想要退出本系统继续聊天，请输入chat；关闭聊天系统，请输入Esc。", fromName)
         user_info["flag"]=1
+        user_info["deque"]=deque(["kw"],maxlen=2)
         itchat.send("现在已经进入系统，请输入关键词：", fromName)
 
-if __name__ == "__main__":
 
-    itchat.auto_login()
-    itchat.run()
-    cmdline.execute("scrapy crawl douban")
 
 
 
