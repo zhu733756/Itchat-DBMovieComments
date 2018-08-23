@@ -12,10 +12,10 @@ from scrapy_redis.queue import SpiderQueue
 
 class MoviecommentsPipeline(object):
 
-    def __init__(self,host,port,db):
+    def __init__(self,host,port,dbname):
         self.host = host
         self.port = port
-        self.db=db
+        self.dbname=dbname
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -23,21 +23,36 @@ class MoviecommentsPipeline(object):
         return cls(
             host=settings.get("MONGODB_HOST"),
             port=settings.get("MONGODB_PORT"),
-            db=settings.get("MONGODB_DBNAME"),
+            dbname=settings.get("MONGODB_DBNAME"),
         )
 
     def open_spider(self,spider):
         self.client = pymongo.MongoClient(host=self.host, port=self.port)
-        self.table= self.client[self.db]
+        self.db= self.client[self.dbname]
 
     def process_item(self, item, spider):
+        collection=getattr(item,"collection","comments_")
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)
-                self.table[item.collection].insert(info)
+                self.db[collection].insert(info)
             except Exception as e:
                 pass
         return item
 
     def close_spider(self,spider):
         self.client.close()
+
+class ImagePipeline(ImagesPipeline):
+
+    def file_path(self, request, response=None, info=None):
+        url=request.url
+        return url.split("/")[-1]
+
+    def item_completed(self, results, item, info):
+        image_paths=[x["path"] for ok,x in results if ok]
+        if not image_paths:
+            raise DropItem("Image downloaded failed!")
+
+    def get_media_requests(self, item, info):
+        yield scrapy.Request(item["imgurl"])
