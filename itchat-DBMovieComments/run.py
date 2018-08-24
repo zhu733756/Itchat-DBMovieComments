@@ -12,7 +12,7 @@ from multiprocessing import Process
 from ItchatRoom import itchat
 
 def start_spider(name="douban"):
-    cmdline.execute("scrapy crawl {} --nolog".format(name).split())
+    cmdline.execute("scrapy crawl {}".format(name).split())
 
 def itchat_run():
     itchat.auto_login(hotReload=True)

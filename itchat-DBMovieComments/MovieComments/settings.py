@@ -17,15 +17,19 @@ NEWSPIDER_MODULE = 'MovieComments.spiders'
 ROBOTSTXT_OBEY = False
 
 DEFAULT_REQUEST_HEADERS = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.',
-    'Accept-Encoding': 'gzip, deflate, sdch, br',
-    'Accept-Language': 'zh-CN,zh;q=0.8',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'zh-CN,zh;q=0.9',
     'Connection': 'keep-alive',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36',
+    'Host': 'movie.douban.com',
+    'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
 }
 
+USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'
+
 SPIDER_MIDDLEWARES = {
-   'MovieComments.middlewares.CookiesMiddleware': 554,
+   'MovieComments.middlewares.CookiesMiddleware': 553,
+   'MovieComments.middlewares.ProxyMiddleware': 554,
 }
 
 ITEM_PIPELINES = {
@@ -47,5 +51,9 @@ SCHEDULER_IDLE_BEFORE_CLOSE= 10
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT= 6379
 
-cookie_str='ll="118254"; bid=zeLloSw_6W0; ps=y; dbcl2="148093400:r9rDWAWnEf4"; ck=N7pn; __guid=223695111.630633805874402300.1534213202163.5835; __yadk_uid=PRAJivMtK9F5zKNvvWrUroGakz8mcywu; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1534303706%2C%22https%3A%2F%2Fm.douban.com%2Fsearch%2F%3Fquery%3D%25E5%2581%2587%25E9%259D%25A2%22%5D; _vwo_uuid_v2=D5E06D51A453672A3F5502017A0F3BC9A|3ae5f9ee4ab2fbe559a3ad9391459d6a; monitor_count=19; _pk_id.100001.4cf6=0eb62c833b7a7911.1534213204.5.1534303728.1534294996.; __utma=30149280.1328539538.1534213204.1534294958.1534303706.5; __utmc=30149280; __utmz=30149280.1534234898.3.2.utmcsr=movie.douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/subject/1294438/comments; __utmv=30149280.14809; __utma=223695111.104934647.1534213204.1534294961.1534303706.5; __utmc=223695111; __utmz=223695111.1534213204.1.1.utmcsr=m.douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/search/; push_noty_num=0; push_doumail_num=0'
-cookies = {key.strip().split("=",1)[0]: key.strip().split("=",1)[1] for key in cookie_str.strip().split(";")}
+COOKIES_DEBUG=True
+
+PROXY_POOL_URL="http://localhost:5555/random"
+RETRY_HTTP_CODES = [401, 403, 408, 414, 500, 502, 503, 504]
+cookie_str='bid=2Y0JTfLwAE8; ps=y; __guid=223695111.3617450202817394700.1535081223998.4727; __utmc=30149280; __utmc=223695111; push_noty_num=0; push_doumail_num=0; ll="118254"; __yadk_uid=u84YXRa4Quos6jSpv1ugAdmX3r598GAa; ct=y; _vwo_uuid_v2=D65567177BD83881FD786AFC69071D7F6|4544596066584f164efbd8799fc64c1d; __utmz=30149280.1535085837.2.2.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/accounts/login; __utmz=223695111.1535085837.2.2.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/accounts/login; __utmv=30149280.14809; dbcl2="148093400:qlrMmnwHSoU"; ck=I1hN; __utma=30149280.766659013.1535081224.1535095701.1535099912.5; __utmb=30149280.2.10.1535099912; monitor_count=30; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1535101479%2C%22https%3A%2F%2Fwww.douban.com%2Faccounts%2Flogin%3Fredir%3Dhttps%253A%252F%252Fmovie.douban.com%252Fsubject%252F26654269%252Fcomments%253Fstatus%253DP%22%5D; _pk_id.100001.4cf6=772f3f339728c624.1535081224.5.1535101479.1535096833.; _pk_ses.100001.4cf6=*; __utma=223695111.333086659.1535081224.1535095702.1535101479.5; __utmb=223695111.0.10.1535101479'
+cookie_str2='bid=2Y0JTfLwAE8; __guid=236236167.4536013590969823000.1535081216832.8904; ps=y; __utmc=30149280; push_noty_num=0; push_doumail_num=0; ll="118254"; ct=y; _vwo_uuid_v2=D65567177BD83881FD786AFC69071D7F6|4544596066584f164efbd8799fc64c1d; dbcl2="148093400:5BI6mJMWbR0"; ck=Z6lp; as="https://sec.douban.com/b?r=https%3A%2F%2Fmovie.douban.com%2Fsubject%2F26654269%2Fcomments%3Fstatus%3DP"; __utmz=30149280.1535085837.2.2.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/accounts/login; _pk_ses.100001.8cb4=*; __utma=30149280.766659013.1535081224.1535085837.1535090098.3; __utmv=30149280.14809; ap_v=1,6.0; monitor_count=11; _pk_id.100001.8cb4=9cbefaeb4631ae8e.1535090097.1.1535093565.1535090097.; __utmt=1; __utmb=30149280.16.10.1535090098'

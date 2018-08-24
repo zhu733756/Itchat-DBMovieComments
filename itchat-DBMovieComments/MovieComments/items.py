@@ -9,8 +9,6 @@ import scrapy
 
 class MoviecommentsItem(scrapy.Item):
 
-    collection=""
-
     name=scrapy.Field()
     href=scrapy.Field()
     favored_num=scrapy.Field()

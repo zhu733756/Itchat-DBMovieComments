@@ -31,28 +31,28 @@ class MoviecommentsPipeline(object):
         self.db= self.client[self.dbname]
 
     def process_item(self, item, spider):
-        collection=getattr(item,"collection","comments_")
+        collection=getattr(spider,"collection","comments_id_lost")
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)
                 self.db[collection].insert(info)
             except Exception as e:
-                pass
+                print(e.args)
         return item
 
     def close_spider(self,spider):
         self.client.close()
 
-class ImagePipeline(ImagesPipeline):
-
-    def file_path(self, request, response=None, info=None):
-        url=request.url
-        return url.split("/")[-1]
-
-    def item_completed(self, results, item, info):
-        image_paths=[x["path"] for ok,x in results if ok]
-        if not image_paths:
-            raise DropItem("Image downloaded failed!")
-
-    def get_media_requests(self, item, info):
-        yield scrapy.Request(item["imgurl"])
+# class ImagePipeline(ImagesPipeline):
+#
+#     def file_path(self, request, response=None, info=None):
+#         url=request.url
+#         return url.split("/")[-1]
+#
+#     def item_completed(self, results, item, info):
+#         image_paths=[x["path"] for ok,x in results if ok]
+#         if not image_paths:
+#             raise DropItem("Image downloaded failed!")
+#
+#     def get_media_requests(self, item, info):
+#         yield scrapy.Request(item["imgurl"])
