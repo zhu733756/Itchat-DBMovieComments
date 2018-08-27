@@ -6,9 +6,10 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import pymongo
 from MovieComments.items import MoviecommentsItem
-from scrapy.utils.project import get_project_settings
 from scrapy_redis.spiders import signals
-from scrapy_redis.queue import SpiderQueue
+from scrapy.exceptions import DropItem
+from scrapy.pipelines.images import  ImagesPipeline
+import os,scrapy
 
 class MoviecommentsPipeline(object):
 
@@ -32,6 +33,7 @@ class MoviecommentsPipeline(object):
 
     def process_item(self, item, spider):
         collection=getattr(spider,"collection","comments_id_lost")
+        # collection=item["tbname"] if item["tbname"] else "comments_id_lost"
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)
@@ -43,11 +45,15 @@ class MoviecommentsPipeline(object):
     def close_spider(self,spider):
         self.client.close()
 
-# class ImagePipeline(ImagesPipeline):
+# class ImgPipeline(ImagesPipeline):
 #
 #     def file_path(self, request, response=None, info=None):
-#         url=request.url
-#         return url.split("/")[-1]
+#         filename=request.url.split("/")[-1]
+#         if response:
+#             path="{}/{}".format(response.meta["tbname"],filename)
+#             if not os.path.exists(path):
+#                 os.makedirs(path)
+#         return path
 #
 #     def item_completed(self, results, item, info):
 #         image_paths=[x["path"] for ok,x in results if ok]
@@ -55,4 +61,5 @@ class MoviecommentsPipeline(object):
 #             raise DropItem("Image downloaded failed!")
 #
 #     def get_media_requests(self, item, info):
-#         yield scrapy.Request(item["imgurl"])
+#         yield scrapy.Request(item["imgurl"],meta={"tbname": item["tbname"],})
+
