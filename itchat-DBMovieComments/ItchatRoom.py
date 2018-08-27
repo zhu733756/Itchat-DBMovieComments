@@ -96,7 +96,7 @@ class ItchatRoom(object):
         '''
         if self.topicUrls:
             url = self.topicUrls[text]
-            info,summary=get_movie_info.getMovieInfo(url),get_movie_info.getShortSummary(url)
+            info,summary=get_movie_info.get_basic_info(url)
             itchat.send("电影阵容：\n"+info,toName)
             itchat.send("内容简介：\n"+summary,toName)
         else:
