@@ -20,10 +20,12 @@ def itchat_run():
 
 if __name__ == "__main__":
 
-    # p1=Process(target=start_spider,args=())
-    # p2=Process(target=itchat_run,args=())
-    # for p in (p1,p2):
-    #     p.start()
-    # for p in (p1, p2):
-    #     p.join()
-    start_spider()
+    # start_spider()
+
+    p1=Process(target=start_spider,args=())
+    p2=Process(target=itchat_run,args=())
+    for p in (p1,p2):
+        p.start()
+    for p in (p1, p2):
+        p.join()
+
