@@ -7,16 +7,18 @@
 -------------------------------------------------
 __author__ = 'ZH'
 """
-
-from MovieComments import settings
-from pyecharts import Geo,Style
+from pyecharts import Geo,Style,Pie
 from pymongo import MongoClient
 from collections import Counter
-import pandas as pd
 import re,os,bisect
 from functools import reduce
 from jieba import analyse,cut
 import matplotlib.pyplot as plt
+from wordcloud import STOPWORDS, ImageColorGenerator
+try:
+    from wordcloud import WordCloud
+except:
+    from pyecharts.charts.wordcloud import WordCloud
 
 class MongoAnalysis(object):
 
@@ -53,10 +55,7 @@ class MongoAnalysis(object):
                 if comments[name] is None:
                     result.append(aver)
                 result.append(comments[name])
-
-    def GetStars(self,star_score, breakpoints=[0, 10, 20, 30, 40, 50]):
-        grades=["一星","二星","三星","四星","五星"]
-        return grades[bisect.bisect(breackpoints,star_score)]
+            return result
 
     def AreaMap(self,title=None):
         '''
@@ -91,7 +90,6 @@ class MongoAnalysis(object):
                 if province in key:
                     key=key.replace(province,"").strip()
             k_lst.append(key)
-        print(k_lst,v_lst)
         v_max=max(v_lst)
         geo=Geo(title,"数据来源：豆瓣电影",**self.style.init_style)
         geo.add("",k_lst,v_lst,
@@ -105,19 +103,40 @@ class MongoAnalysis(object):
         elif self.saved_file_type=="html":
             geo.render(os.path.join(self.path,"AreaMap.html"))
 
-    def StarMap(self):
-        pass
+    def GetStars(self,star_score, breakpoints=[0, 10, 20, 30, 40, 50]):
+        grades=["一星","二星","三星","四星","五星"]
+        return grades[bisect.bisect(breakpoints,star_score)]
 
-    def WorldCloudMap(self,message=None,max_bin=100):
+    def StarMap(self):
+        score=dict(Counter(map(self.GetStars,self.GetOneCol(name="comment_score",method="average"))))
+        attr,value=Geo.cast(score)
+        pie=Pie(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=900)
+        pie.add("",attr,value,center=[75,50],is_random=True,
+                radius=[30,75],rosetype="area",
+                is_legend_show=False,is_label_show=True)
+        if self.saved_file_type is None:
+            geo.render(os.path.join(self.path,"StarMap.png"))
+        elif self.saved_file_type=="html":
+            geo.render(os.path.join(self.path,"StarMap.html"))
+
+    def Cast(self,max_bin=100):
+        string = "".join(self.GetOneCol(name="comment_content"))
+        lis = Counter([tag for tag in cut(string, cut_all=False)])
+        attr, value = [], []
+        for i in analyse.extract_tags(string, max_bin):
+            if i in lis:
+                attr.append(i)
+                value.append(lis[i])
+        return attr,value
+
+    def WordCloudMap(self,message=None):
         if message is None:
             print("No stopwords!")
-            self.SimpleWorldCloudMap()
+            self.SimpleWordCloudMap()
         elif "," not in message:
-            raise ValueError('屏蔽词请以，隔开')
+            raise ValueError('屏蔽词请以"，"隔开')
         else:
-            from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-            string="".join(self.GetOneCol(name="comment_content"))
-            lis="".join(cut(string, cut_all=False))
+            attr,value=self.Cast()
             backgroud_path='./img/{}/background/{}.png'.format(self.tbname,self.tbname)
             if not os.path.exists(backgroud_path):
                 backgroud_path ='./img/sample/1.jpg'
@@ -134,7 +153,7 @@ class MongoAnalysis(object):
                 max_font_size=400,# 最大号字体
                 random_state=50#旋转角度
             )
-            word_cloud = cloud.generate(lis)  # 产生词云
+            word_cloud = cloud.generate(attr)  # 产生词云
             img_colors=ImageColorGenerator(backgroud_image)
             word_cloud.recolor(color_func=img_colors)
             plt.imshow(word_cloud)
@@ -142,15 +161,8 @@ class MongoAnalysis(object):
             plt.show()
             word_cloud.to_file(os.path.join(self.path,"worldcloud_3.png"))
 
-    def SimpleWorldCloudMap(self,max_bin=100):
-        from pyecharts.charts.wordcloud import WordCloud
-        string = "".join(self.GetOneCol(name="comment_content"))
-        lis = Counter([tag for tag in cut(string, cut_all=False)])
-        attr, value = [], []
-        for i in analyse.extract_tags(string, max_bin):
-            if i in lis:
-                attr.append(i)
-                value.append(lis[i])
+    def SimpleWordCloudMap(self):
+        attr,value=self.Cast()
         wordcloud = WordCloud(width=1200, height=600)
         wordcloud.add("", attr, value, word_size_range=[20, 100])
         if self.saved_file_type is None:
@@ -158,4 +170,4 @@ class MongoAnalysis(object):
         elif self.saved_file_type=="html":
             wordcloud.render(os.path.join(self.path,"worldcloud.html"))
 
-MongoAnalysis(tbname="comments_26872492").WorldCloudMap(message="不能,什么,自己")
+MongoAnalysis(tbname="comments_26872492").WordCloudMap(message="不能,什么,自己")
