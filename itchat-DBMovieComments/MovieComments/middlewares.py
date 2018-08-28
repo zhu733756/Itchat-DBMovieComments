@@ -8,8 +8,6 @@ from scrapy import signals
 import logging,requests
 from random import sample,choice
 import string
-import faker
-from scrapy.downloadermiddlewares.httpproxy import HttpProxyMiddleware
 
 class ProxyMiddleware(object):
 
