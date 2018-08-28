@@ -115,9 +115,9 @@ class MongoAnalysis(object):
                 radius=[30,75],rosetype="area",
                 is_legend_show=False,is_label_show=True)
         if self.saved_file_type is None:
-            geo.render(os.path.join(self.path,"StarMap.png"))
+            pie.render(os.path.join(self.path,"StarMap.png"))
         elif self.saved_file_type=="html":
-            geo.render(os.path.join(self.path,"StarMap.html"))
+            pie.render(os.path.join(self.path,"StarMap.html"))
 
     def Cast(self,max_bin=100):
         string = "".join(self.GetOneCol(name="comment_content"))
