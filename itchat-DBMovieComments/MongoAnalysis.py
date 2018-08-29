@@ -210,3 +210,4 @@ class MongoAnalysis(object):
 
     def close(self):
         self.conn.close()
+
