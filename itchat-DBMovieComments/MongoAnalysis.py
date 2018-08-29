@@ -10,15 +10,11 @@ __author__ = 'ZH'
 from pyecharts import Geo,Style,Pie
 from pymongo import MongoClient
 from collections import Counter
-import re,os,bisect
+import re,os,bisect,itertools
 from functools import reduce
-from jieba import analyse,cut
+from jieba import cut
 import matplotlib.pyplot as plt
 from wordcloud import STOPWORDS, ImageColorGenerator
-try:
-    from wordcloud import WordCloud
-except:
-    from pyecharts.charts.wordcloud import WordCloud
 
 class MongoAnalysis(object):
 
@@ -27,7 +23,8 @@ class MongoAnalysis(object):
         if tbname is None:
             raise ValueError("Not get a tbname!")
         self.tbname = tbname
-        self.db = MongoClient("localhost:27017", connect=True)['DBMovie']
+        self.conn= MongoClient("localhost:27017", connect=True)
+        self.db = self.conn['DBMovie']
         self.collection = self.db[self.tbname]
         self.style=Style(title_color='#fff',
                          title_pos="center",
@@ -40,21 +37,29 @@ class MongoAnalysis(object):
             os.makedirs(self.path)
 
     def GetOneCol(self,name,method=None):
-
+        '''
+        give a name to search for one col in mongodb
+        :param name: colname,such as "comment_content".
+        :param method:
+        if method is None,we removes the null data.
+        if method is 'average',we fills the null data with the mean value.
+        :return: nonempty set
+        '''
         if method is None:
-            return [comments[name]
+            return [comments[name].strip()
                       for comments in self.collection.find()
                       if comments[name] is not None]
         elif method == "average":
-            com_lst=[comments[name]
+            com_lst=[comments[name].strip()
                      for comments in self.collection.find()
                      if comments[name] is not None]
-            aver=reduce(lambda x,y:x+y,com_lst)/len(com_lst)
+            aver=reduce(lambda x,y:x+y,map(int,com_lst))/len(com_lst)
             result=[]
             for comments in self.collection.find():
-                if comments[name] is None:
+                if comments[name]:
+                    result.append(int(comments[name].strip()))
+                else:
                     result.append(aver)
-                result.append(comments[name])
             return result
 
     def AreaMap(self,title=None):
@@ -103,12 +108,23 @@ class MongoAnalysis(object):
         elif self.saved_file_type=="html":
             geo.render(os.path.join(self.path,"AreaMap.html"))
 
-    def GetStars(self,star_score, breakpoints=[0, 10, 20, 30, 40, 50]):
+    def GetStars(self,star_score):
+        '''
+        search for grades with star_score
+        :param star_score: int
+        :return: a list of grades
+        '''
+        breakpoints = [11, 21, 31, 41, 51]
         grades=["一星","二星","三星","四星","五星"]
         return grades[bisect.bisect(breakpoints,star_score)]
 
     def StarMap(self):
-        score=dict(Counter(map(self.GetStars,self.GetOneCol(name="comment_score",method="average"))))
+        '''
+        Get a pie map
+        :return:
+        '''
+        score=dict(Counter(map(self.GetStars,
+                               self.GetOneCol(name="comment_score",method="average"))))
         attr,value=Geo.cast(score)
         pie=Pie(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=900)
         pie.add("",attr,value,center=[75,50],is_random=True,
@@ -119,50 +135,72 @@ class MongoAnalysis(object):
         elif self.saved_file_type=="html":
             pie.render(os.path.join(self.path,"StarMap.html"))
 
-    def Cast(self,max_bin=100):
-        string = "".join(self.GetOneCol(name="comment_content"))
-        lis = Counter([tag for tag in cut(string, cut_all=False)])
-        attr, value = [], []
-        for i in analyse.extract_tags(string, max_bin):
-            if i in lis:
-                attr.append(i)
-                value.append(lis[i])
-        return attr,value
+    def Cast(self,name,method=None,message=None,max_bin=100):
+        '''
+        casts data ,and filters data with stopwords
+        :param name: colname
+        :param method: to decide the func returns a dict or tuple(attr,value)
+        :param message: a message the user gives,if not None, will be adding to stopwords
+        :param max_bin: the max number of words on wordcloud
+        :return:
+        '''
+        string = "".join(self.GetOneCol(name))
+        brokewords=map(str.strip,
+                       open('./config/stopwords/stopwords.txt', "r", encoding="utf-8")
+                       .readlines())
+        if message:
+            brokewords=itertools.chain(brokewords,message.split(",")[:])
+        stopwords = "".join(brokewords)
+        lis = dict(Counter([tag.strip()
+                        for tag in analyse.extract_tags(string, max_bin)
+                        if tag.strip() not in stopwords]))
+        lis = sorted(lis.items(), key=lambda x: x[1], reverse=True)
+        if method is None:
+            return Geo.cast(lis)
+        elif method=="dict":
+            return {k[0]:k[1] for k in lis}
 
     def WordCloudMap(self,message=None):
+        '''
+        a high-class wordcloud
+        :param message: messages that user gives
+        :return:
+        '''
+        from wordcloud import WordCloud
+        backgroud_path = './img/{}/background/{}.png'.format(self.tbname, self.tbname)
+        if not os.path.exists(backgroud_path):
+            backgroud_path = './img/sample/1.jpg'
+        backgroud_image = plt.imread(backgroud_path)
+        cloud = WordCloud(
+            width=1024, height=768,
+            font_path='./config/fonts/simhei.ttf',
+            background_color='white',  # 设置背景色
+            mask=backgroud_image,  # 词云形状False
+            max_words=100,  # 允许最大词汇
+            max_font_size=400,  # 最大号字体
+            random_state=50  # 旋转角度
+        )
         if message is None:
-            print("No stopwords!")
-            self.SimpleWordCloudMap()
-        elif "," not in message:
-            raise ValueError('屏蔽词请以"，"隔开')
+            text=self.Cast(name="comment_content",method="dict")
         else:
-            attr,value=self.Cast()
-            backgroud_path='./img/{}/background/{}.png'.format(self.tbname,self.tbname)
-            if not os.path.exists(backgroud_path):
-                backgroud_path ='./img/sample/1.jpg'
-            backgroud_image=plt.imread(backgroud_path)
-            stopwords=STOPWORDS.copy()
-            for mes in message.split(","):
-                stopwords.add(mes)
-            cloud = WordCloud(
-                width=1024,height=768,
-                font_path='./fonts/simhei.ttf',
-                background_color='white',# 设置背景色
-                mask=backgroud_image,# 词云形状
-                max_words=100,# 允许最大词汇
-                max_font_size=400,# 最大号字体
-                random_state=50#旋转角度
-            )
-            word_cloud = cloud.generate(attr)  # 产生词云
-            img_colors=ImageColorGenerator(backgroud_image)
-            word_cloud.recolor(color_func=img_colors)
-            plt.imshow(word_cloud)
-            plt.axis('off')
-            plt.show()
-            word_cloud.to_file(os.path.join(self.path,"worldcloud_3.png"))
+            message.replace("，",",")
+            if "," not in message:
+                message=message+","
+            text = self.Cast(name="comment_content", method="dict",message=message)
+        cloud.fit_words(text)  # 产生词云
+        cloud.recolor(color_func=ImageColorGenerator(backgroud_image))
+        plt.figure()
+        plt.imshow(cloud)
+        plt.axis('off')
+        cloud.to_file(os.path.join(self.path, "worldcloud.png"))
 
     def SimpleWordCloudMap(self):
-        attr,value=self.Cast()
+        '''
+        a lower-class wordcloud
+        :return:
+        '''
+        from pyecharts.charts.wordcloud import WordCloud
+        attr,value=self.Cast(name="comment_content")
         wordcloud = WordCloud(width=1200, height=600)
         wordcloud.add("", attr, value, word_size_range=[20, 100])
         if self.saved_file_type is None:
@@ -170,4 +208,5 @@ class MongoAnalysis(object):
         elif self.saved_file_type=="html":
             wordcloud.render(os.path.join(self.path,"worldcloud.html"))
 
-MongoAnalysis(tbname="comments_26872492").WordCloudMap(message="不能,什么,自己")
+    def close(self):
+        self.conn.close()
