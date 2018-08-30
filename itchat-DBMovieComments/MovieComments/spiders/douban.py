@@ -5,7 +5,7 @@ import logging,time,random
 from scrapy_redis.spiders import RedisCrawlSpider,RedisSpider
 import re
 from collections import deque
-from main import itchat
+from ItchatReply import ItchatReply
 
 class DoubanSpider(RedisSpider):
 
@@ -21,11 +21,10 @@ class DoubanSpider(RedisSpider):
         new_tablename = "comments_{}". \
             format(re.findall(r".*?/(\d+)/com.*?", response.urljoin(""))[0])
         if new_tablename != self.former_tablename:
-            itchat.auto_login(hotReload=True)
-            itchat.send("Former desired request({}) has finished!"
-                        .format(self.former_tablename), "filehelper!")
+            if self.former_tablename:
+                ItchatReply().schedule(self.former_tablename)
             self.former_tablename = new_tablename
-        setattr(self, "collection", new_tablename)
+        setattr(self, "collection", self.former_tablename)
         pageContent = response.xpath('//div[@class="comment-item"]')
         nextUrl = response.xpath('//a[@class="next"]/@href').extract_first()
         for comments in pageContent:
