@@ -12,7 +12,7 @@ from pymongo import MongoClient
 from collections import Counter
 import re,os,bisect,itertools
 from functools import reduce
-from jieba import cut
+from jieba import analyse
 import matplotlib.pyplot as plt
 from wordcloud import STOPWORDS, ImageColorGenerator
 
@@ -127,7 +127,7 @@ class MongoAnalysis(object):
                                self.GetOneCol(name="comment_score",method="average"))))
         attr,value=Geo.cast(score)
         pie=Pie(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=900)
-        pie.add("",attr,value,center=[75,50],is_random=True,
+        pie.add("",attr,value,center=[50,50],is_random=True,
                 radius=[30,75],rosetype="area",
                 is_legend_show=False,is_label_show=True)
         if self.saved_file_type is None:
@@ -192,7 +192,7 @@ class MongoAnalysis(object):
         plt.figure()
         plt.imshow(cloud)
         plt.axis('off')
-        cloud.to_file(os.path.join(self.path, "worldcloud.png"))
+        cloud.to_file(os.path.join(self.path, "wordcloud.png"))
 
     def SimpleWordCloudMap(self):
         '''
@@ -202,12 +202,13 @@ class MongoAnalysis(object):
         from pyecharts.charts.wordcloud import WordCloud
         attr,value=self.Cast(name="comment_content")
         wordcloud = WordCloud(width=1200, height=600)
-        wordcloud.add("", attr, value, word_size_range=[20, 100])
+        wordcloud.add("", attr, value, shape="diamond",word_size_range=[20, 100])
         if self.saved_file_type is None:
-            wordcloud.render(os.path.join(self.path,"worldcloud.png"))
+            wordcloud.render(os.path.join(self.path,"wordcloud.png"))
         elif self.saved_file_type=="html":
-            wordcloud.render(os.path.join(self.path,"worldcloud.html"))
+            wordcloud.render(os.path.join(self.path,"wordcloud.html"))
 
     def close(self):
         self.conn.close()
 
+#
