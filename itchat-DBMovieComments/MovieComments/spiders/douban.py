@@ -20,11 +20,7 @@ class DoubanSpider(RedisSpider):
     def parse(self, response):
         new_tablename = "comments_{}". \
             format(re.findall(r".*?/(\d+)/com.*?", response.urljoin(""))[0])
-        if new_tablename != self.former_tablename:
-            if self.former_tablename:
-                ItchatReply().schedule(self.former_tablename)
-            self.former_tablename = new_tablename
-        setattr(self, "collection", self.former_tablename)
+        setattr(self, "collection", new_tablename)
         pageContent = response.xpath('//div[@class="comment-item"]')
         nextUrl = response.xpath('//a[@class="next"]/@href').extract_first()
         for comments in pageContent:
