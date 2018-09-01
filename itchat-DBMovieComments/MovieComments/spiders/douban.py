@@ -4,8 +4,7 @@ from MovieComments.items import MoviecommentsItem
 import logging,time,random
 from scrapy_redis.spiders import RedisCrawlSpider,RedisSpider
 import re
-from collections import deque
-from ItchatReply import ItchatReply
+from ItchatReply import schedule
 
 class DoubanSpider(RedisSpider):
 
@@ -14,12 +13,16 @@ class DoubanSpider(RedisSpider):
     redis_key = 'douban_spider:start_urls'
 
     def __init__(self, *args, **kwargs):
-        self.former_tablename = ""
+        self.former_tbname=""
         super(DoubanSpider, self).__init__(*args, **kwargs)
 
     def parse(self, response):
         new_tablename = "comments_{}". \
             format(re.findall(r".*?/(\d+)/com.*?", response.urljoin(""))[0])
+        if self.former_tbname != new_tablename:
+            if self.former_tbname:
+                schedule(self.former_tbname)
+            self.former_tbname=new_tablename
         setattr(self, "collection", new_tablename)
         pageContent = response.xpath('//div[@class="comment-item"]')
         nextUrl = response.xpath('//a[@class="next"]/@href').extract_first()
