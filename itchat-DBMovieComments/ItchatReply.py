@@ -148,7 +148,7 @@ class ItchatRoom(object):
                 #说明这个表已经被爬取过
                 if  "path_list" in requirement.info_dict[requirement.get_tbname()]:
                     #保存的图片路径
-                    itchat.send("Found reports, wait a few seconds!")
+                    itchat.send("Found reports, wait a few seconds!",toName)
                     requirement.store_requirements()
                     requirement.find_report()
                 else:
