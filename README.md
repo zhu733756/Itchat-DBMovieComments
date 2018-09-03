@@ -20,6 +20,8 @@
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/6.png)
 
 ## 依赖安装
+#### 确认安装好phantomjs插件(可访问pyechart官网下载)，并将其bin路径加入系统变量
+#### (例如： D:\anaconda\phantomjs-2.1.1-windows\bin)
 ```
 pip install -r requirements.txt
 ```
