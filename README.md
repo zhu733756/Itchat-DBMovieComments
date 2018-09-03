@@ -20,9 +20,9 @@
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/6.png)
 
 ## 依赖安装
-'''
+```
 pip install -r requirements.txt
-'''
+```
 
 ## 开发环境
 #### windows 7, python 3.6(作者下载的是对应python3.6版本的anconda)
@@ -34,7 +34,9 @@ pip install -r requirements.txt
 ## 配置代理池(确认redis数据库已经打开)
 #### 进入proxypool目录，修改settings.py文件
 #### PASSWORD为Redis密码，如果为空，则设置为None
-#### python run.py
+```
+python run.py
+```
 
 ## 最后：
 #### WebSpider文件夹中包含两个project
