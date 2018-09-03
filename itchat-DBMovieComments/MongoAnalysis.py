@@ -14,6 +14,7 @@ import re,os,bisect,itertools
 from functools import reduce
 from jieba import analyse
 import matplotlib.pyplot as plt
+from GetMovieInfo import GetMvInfo
 from wordcloud import STOPWORDS, ImageColorGenerator
 
 class MongoAnalysis(object):
@@ -35,6 +36,17 @@ class MongoAnalysis(object):
         self.path='./img/{}/finished'.format(self.tbname)
         if not os.path.exists(self.path):
             os.makedirs(self.path)
+
+    def get_title(self):
+        '''
+        get the title of the movie
+        :return:
+        '''
+        search_number=re.compile(r"\d+").findall(self.tbname)[0]
+        title=GetMvInfo().get_title(search_number)
+        if not title:
+            title=self.tbname
+        return title
 
     def GetOneCol(self,name,method=None):
         '''
@@ -62,9 +74,8 @@ class MongoAnalysis(object):
                     result.append(aver)
             return result
 
-    def AreaMap(self,title=None):
+    def AreaMap(self):
         '''
-        :param title: title of area map
         :return: a area map on chinese map
         downloaded maps:
         pip install echarts-countries-pypkg
@@ -74,8 +85,6 @@ class MongoAnalysis(object):
         pip install echarts-china-misc-pypkg
         pip install echarts-china-kingdom-pypkg
         '''
-        if title is None:
-            title = self.tbname
         # filter other countries' users
         city=dict(Counter(self.GetOneCol(name="city")))
         filter_city={key:city[key]
@@ -96,7 +105,7 @@ class MongoAnalysis(object):
                     key=key.replace(province,"").strip()
             k_lst.append(key)
         v_max=max(v_lst)
-        geo=Geo(title,"数据来源：豆瓣电影",**self.style.init_style)
+        geo=Geo(self.get_title(),"数据来源：豆瓣电影",**self.style.init_style)
         geo.add("",k_lst,v_lst,
                 type='effectScatter',#other styles:scatter or heatmap
                 visual_range=[0,v_max],
@@ -126,7 +135,7 @@ class MongoAnalysis(object):
         score=dict(Counter(map(self.GetStars,
                                self.GetOneCol(name="comment_score",method="average"))))
         attr,value=Geo.cast(score)
-        pie=Pie(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=900)
+        pie=Pie(self.get_title(),"数据来源：豆瓣电影",title_pos="center",width=900)
         pie.add("",attr,value,center=[50,50],is_random=True,
                 radius=[30,75],rosetype="area",
                 is_legend_show=False,is_label_show=True)
@@ -201,7 +210,7 @@ class MongoAnalysis(object):
         '''
         from pyecharts.charts.wordcloud import WordCloud
         attr,value=self.Cast(name="comment_content")
-        wordcloud = WordCloud(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=1200, height=600)
+        wordcloud = WordCloud(self.get_title(),"数据来源：豆瓣电影",title_pos="center",width=1200, height=600)
         wordcloud.add("", attr, value, shape="diamond",word_size_range=[20, 100])
         if self.saved_file_type is None:
             wordcloud.render(os.path.join(self.path,"wordcloud.png"))
@@ -210,3 +219,9 @@ class MongoAnalysis(object):
 
     def close(self):
         self.conn.close()
+
+# m=MongoAnalysis(tbname="comments_25966209")
+# m.StarMap()
+# m.AreaMap()
+# m.SimpleWordCloudMap()
+# m.close()

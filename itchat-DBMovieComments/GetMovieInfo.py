@@ -27,7 +27,7 @@ class GetMvInfo(object):
     def get_cookies(self):
         return {"bid":"".join(sample(string.ascii_letters+string.digits+"-_",11))}
 
-    def html_response(self,url,method=None):
+    def html_response(self,url):
         try:
             page_content = requests.get(url).text
         except RequestException as e:
@@ -83,13 +83,24 @@ class GetMvInfo(object):
                 return "没有内容简介"
         return None
 
+    def get_title(self,search_number):
+        url="https://movie.douban.com/subject/{}/".format(search_number)
+        page_content=self.html_response(url)
+        try:
+            text=page_content.find("span",{"property":"v:itemreviewed"}).string
+            if text:
+                return text.strip()
+        except:
+            return None
+
     def get_basic_info(self,url):
         page_content = self.html_response(url)
-        info,summary=self.getMovieInfo(page_content),self.getShortSummary(page_content)
+        info,summary=self.getMovieInfo(page_content),\
+                           self.getShortSummary(page_content),
         return info,summary
 
     def close_session(self):
         self.s.close()
-#
+
 # t=GetMvInfo().get_basic_info("https://movie.douban.com/subject/25966209/")
 # print(t)
