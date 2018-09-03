@@ -12,7 +12,7 @@
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/2.png)
 #### 3 选择电影序号，查看电影简介（输入数字1-10之间，这里我选择3，选中第三部电影，显示结果就是电影简介）
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/3.png)
-#### 4 确认选择，就输入crawl，这样就能自动加入下载队列了，
+#### 4 确认选择，就输入crawl，这样就自动加入下载队列了，
 ####   如果不是你想要的电影，可以选择back返回上一级，重新输入
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/5.png)
 #### 5 如果有第二个需求，输入back返回上一级重新输入，重复第三步或者第四步
@@ -24,6 +24,7 @@
 ## 依赖安装
 #### 确认安装好phantomjs插件(可访问pyechart官网下载)，并将其bin路径加入系统变量
 #### (例如： D:\anaconda\phantomjs-2.1.1-windows\bin)
+#### 所需python第三方包合辑：
 ```
 pip install -r requirements.txt
 ```
@@ -42,7 +43,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-## 最后：
+## 说明：
 #### WebSpider文件夹中包含两个project
 #### itchat-DBMovieComment
 #### ProxyPool-master(这个project来自崔大大@Germey，感谢他，不用让作者再造轮子！)。
