@@ -1,4 +1,4 @@
-## [itchat-DBMovieComments图文说明]
+# [itchat-DBMovieComments图文说明]
 
 ## 功能介绍：
 #### 本project不仅是一个能和图灵机器人聊天的程序（这一部分不作说明了），而且还添加了彩蛋，能实时获取豆瓣影评，自动生成可视化数据发送给用户。
@@ -20,7 +20,9 @@
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/6.png)
 
 ## 依赖安装
-#### pip install -r requirements.txt
+'''
+pip install -r requirements.txt
+'''
 
 ## 开发环境
 #### windows 7, python 3.6(作者下载的是对应python3.6版本的anconda)
