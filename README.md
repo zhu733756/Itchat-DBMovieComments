@@ -33,7 +33,7 @@ pip install -r requirements.txt
 #### windows 7, python 3.6(作者下载的是对应python3.6版本的anconda)
 
 ## 打开数据库连接（redis和mongo）
-#### 在pycharm中运行start.bat
+#### 在pycharm中运行start.bat（把两个数据库的路径修改为你的路径）
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/7.png)
 
 ## 配置代理池(确认redis数据库已经打开)
