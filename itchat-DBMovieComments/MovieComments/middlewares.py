@@ -25,11 +25,13 @@ class ProxyMiddleware(object):
             return False
 
     def process_request(self, request, spider):
-        proxy = self.get_random_proxy()
-        if proxy:
-            uri = 'https://{proxy}'.format(proxy=proxy)
-            self.logger.debug('使用代理:' + proxy)
-            request.meta['proxy'] = uri
+
+        if request.meta.get('retry_times'):
+            proxy = self.get_random_proxy()
+            if proxy:
+                uri = 'https://{proxy}'.format(proxy=proxy)
+                self.logger.debug('使用代理:' + proxy)
+                request.meta['proxy'] = uri
 
     @classmethod
     def from_crawler(cls, crawler):

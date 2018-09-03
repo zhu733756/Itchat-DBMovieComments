@@ -38,7 +38,7 @@ class MongoAnalysis(object):
 
     def GetOneCol(self,name,method=None):
         '''
-        give a name to search for one col in mongodb
+        give a name to search the column name in mongodb
         :param name: colname,such as "comment_content".
         :param method:
         if method is None,we removes the null data.
@@ -201,7 +201,7 @@ class MongoAnalysis(object):
         '''
         from pyecharts.charts.wordcloud import WordCloud
         attr,value=self.Cast(name="comment_content")
-        wordcloud = WordCloud(width=1200, height=600)
+        wordcloud = WordCloud(self.tbname,"数据来源：豆瓣电影",title_pos="center",width=1200, height=600)
         wordcloud.add("", attr, value, shape="diamond",word_size_range=[20, 100])
         if self.saved_file_type is None:
             wordcloud.render(os.path.join(self.path,"wordcloud.png"))
@@ -210,5 +210,3 @@ class MongoAnalysis(object):
 
     def close(self):
         self.conn.close()
-
-#

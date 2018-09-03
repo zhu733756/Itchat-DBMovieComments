@@ -25,5 +25,5 @@ if __name__ == "__main__":
         p.start()
     for p in (p1, p2):
         p.join()
-    itchat_run()
+
 

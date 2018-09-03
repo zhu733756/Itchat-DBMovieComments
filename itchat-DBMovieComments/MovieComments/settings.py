@@ -32,7 +32,7 @@ ITEM_PIPELINES = {
    # 'MovieComments.pipelines.ImgPipeline': 303,
 }
 
-LOG_LEVEL="DEBUG"
+LOG_LEVEL="INFO"
 
 MONGODB_HOST = '127.0.0.1'
 MONGODB_PORT = 27017

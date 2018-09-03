@@ -5,6 +5,7 @@ import logging,time,random
 from scrapy_redis.spiders import RedisCrawlSpider,RedisSpider
 import re
 from ItchatReply import schedule
+from scrapy.exceptions import DontCloseSpider
 
 class DoubanSpider(RedisSpider):
 
@@ -41,8 +42,6 @@ class DoubanSpider(RedisSpider):
                                  callback=self.parse_info)
         if nextUrl:
             nextUrl = response.urljoin(nextUrl)
-            time.sleep(random.choice([3, 4, 5]))
-            self.logger.debug("change cookies")
             yield scrapy.Request(url=nextUrl,
                                  callback=self.parse)
 
@@ -57,4 +56,12 @@ class DoubanSpider(RedisSpider):
         item["attention_num"]=response.css('#content div div.aside p.rev-link a::text').re_first(r"\d+")
         yield item
 
-
+    def spider_idle(self):
+        """Schedules a request if available, otherwise waits."""
+        # XXX: Handle a sentinel to close the spider.
+        self.schedule_next_requests()
+        len_urls = self.server.llen(self.redis_key)
+        if len_urls == 0 and self.former_tbname:
+            schedule(self.former_tbname)
+            self.former_tbname=""
+        raise DontCloseSpider
