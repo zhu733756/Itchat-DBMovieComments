@@ -19,20 +19,20 @@
 #### 7 等到爬虫爬取完毕后（需要等待一段时间），会把结果发给用户
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/6.png)
 
-#### 依赖安装
+## 依赖安装
 #### pip install -r requirements.txt
 
-#### 开发环境
+## 开发环境
 #### windows 7, python 3.6(作者下载的是对应python3.6版本的anconda)
 
-#### 打开数据库
+## 打开数据库
 #### 在pycharm运行start.bat
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/7.png)
 
-#### 配置代理池(确认redis数据库已经打开)
+## 配置代理池(确认redis数据库已经打开)
 #### 进入proxypool目录，修改settings.py文件
 #### PASSWORD为Redis密码，如果为空，则设置为None
 #### python run.py
 
-#### 注意：
+## 注意：
 #### WebSpider文件夹中包含两个project：itchat-DBMovieComment以及ProxyPool-master(这个project来自崔大大@Germey，感谢他，不用让作者再造轮子！)。前者也就是主程序，后者是代理抓取程序，缺一不可。
