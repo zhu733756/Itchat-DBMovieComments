@@ -16,36 +16,34 @@ import shelve
 
 class ItchatReply(object):
 
-    def __init__(self,info_dict,url=None,toName=None):
-        self.info_dict=info_dict
+    def __init__(self,url=None,toName=None):
+        self.info_dict=self.open_db()
         self.url=url
         self.toName=toName
         self.redis = StrictRedis(
             connection_pool=ConnectionPool(host="localhost", port=6379))
 
-    @classmethod
-    def open_db(cls):
+    def open_db(self):
         try:
             f = shelve.open('.\last_saved\info')
-            data=f["last_saved"]
+            data=f["info"]
+        except :
+            data={}
         finally:
             f.close()
-        return cls(info_dict=data)
+        print("last_saved:",data)
+        return data
 
     def get_tbname(self):
         return  "comments_{}".\
-            format(re.compile(r".*?/(\d+)/.*?").findall(self.url)[0])
+            format(re.compile(r"(\d+)").findall(self.url)[0])
 
     def start_crawl(self):
         self.redis.lpush("douban_spider:start_urls", self.url)
         itchat.send("Your desired movie is now under crawling... ", self.toName)
         itchat.send("lpush douban_spider:start_urls %s" % self.url, "filehelper")
 
-    def end_crawl(self):
-        pass
-
     def find_report(self):
-        itchat.send("Found reports, wait a few seconds!")
         self.send_MongoAnalysis(self.info_dict,self.get_tbname())
 
     @staticmethod
@@ -62,8 +60,7 @@ class ItchatReply(object):
 
     @staticmethod
     def send_MongoAnalysis(info_dict,tbname):
-        info_dict[tbname]["user_list"]=set(info_dict[tbname]["user_list"])
-        for user in info_dict[tbname]["user_list"]:
+        for user in set(info_dict[tbname]["user_list"]):
             mode_path = "./img/{}/finished".format(tbname)
             path_list = [os.path.join(mode_path, pic)
                          for pic in ['StarMap.png', 'wordcloud.png', 'AreaMap.png']
@@ -77,18 +74,20 @@ class ItchatReply(object):
             else:
                 info_dict[tbname]["user_list"].remove(user)
                 info_dict[tbname].setdefault("path_list", path_list)
+                ItchatReply.save(info_dict)
 
     def store_requirements(self):
         self.info_dict.setdefault(self.get_tbname(), {}) \
             .setdefault("user_list", []).append(self.toName)
 
-    def save(self):
-        itchat.send("saved crawled data!", "filehelper")
+    @staticmethod
+    def save(info_dict):
         try:
             s = shelve.open('.\last_saved\info')
-            s["last_saved"] = self.info_dict
+            s["info"] = info_dict
         finally:
             s.close()
+        itchat.send("saved crawled data!", "filehelper")
 
 class ItchatRoom(object):
 
@@ -132,30 +131,32 @@ class ItchatRoom(object):
                 itchat.send("好像没有这个数值选项！支持的数值选项：1-{}"\
                             .format(self.topicUrls), toName)
             if text in self.topicUrls:
-                user_deque.appendleft("crawl "+self.get_crawlUrl(text))
+                user_deque.appendleft("crawl "+self.get_crawlUrl(text,toName))
         if text == "back":
             itchat.send("请重新输入关键词：",toName)
             user_deque.appendleft("kw")
             self.topicUrls.clear()
         if text=="crawl" and text in user_deque[0]:
             url=user_deque[0].split()[1]
-            requirement=ItchatReply(url, toName)
-            print("=====")
+            requirement=ItchatReply(url=url,toName=toName)
+            print("======")
             print(requirement.get_tbname())
             print(requirement.info_dict)
             print("======")
             if requirement.get_tbname() in requirement.info_dict:
                 #说明这个表已经被爬取过
+                requirement.store_requirements()
                 if  "path_list" in requirement.info_dict[requirement.get_tbname()]:
                     #保存的图片路径
-                    itchat.send("Found reports, wait a few seconds!",toName)
-                    requirement.store_requirements()
+                    itchat.send("Found reports, now please wait a few seconds!",toName)
                     requirement.find_report()
+                    requirement.save(requirement.info_dict)
                 else:
                     itchat.send("Your requirement is in queue, please wait!", toName)
             else:
                 requirement.start_crawl()
-            requirement.save()
+                requirement.store_requirements()
+                requirement.save(requirement.info_dict)
 
     def get_keywords(self,text,toName):
         '''
@@ -238,14 +239,15 @@ def text_reply(msg):
         itchat.send("现在已经进入系统，请输入关键词：", fromName)
 
 def schedule(finished_tbname):
+    itchat.auto_login(hotReload=True)
     itchat.send("Former desired request({}) has finished!"
                 .format(finished_tbname, "filehelper!"))
     try:
         f = shelve.open('.\last_saved\info')
-        data = f["last_saved"]
+        info_data = f["info"]
     finally:
         f.close()
-    ItchatReply.send_MongoAnalysis(data,finished_tbname)
+    ItchatReply.get_MongoAnalysis(info_data,finished_tbname)
 
 def start():
     itchat.auto_login(hotReload=True)
