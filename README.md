@@ -13,7 +13,7 @@
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/3.png)
 #### 4 确认选择，就输入crawl，这样就能自动加入下载队列了，当然如果不是你想要的电影，可以选择back返回上一级，重新输入
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/5.png)
-#### 5 如果有第二个需求，输入back返回上一级，重新输入电影关键词或电影名称
+#### 5 如果有第二个需求，输入back返回上一级重新输入，重复第三步或者第四步
 ![python](https://github.com/zhu733756/WebSpider/blob/spiders/source/4.png)
 #### 6 爬取过程中，可以随时输入chat进入聊天，或者esc退出程序
 #### 7 等到爬虫爬取完毕后（需要等待一段时间），会把结果发给用户
