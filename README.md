@@ -44,13 +44,13 @@ python run.py
 ```
 
 ## 运行主程序
-#### 进入itchat-DBMovieComment目录，运行：
+#### 进入itchat-DBMovieComments目录，运行：
 ```
 python main.py
 ```
 
 ## 说明：
 #### WebSpider文件夹中包含两个project
-#### itchat-DBMovieComment
+#### itchat-DBMovieComments
 #### ProxyPool-master(这个project来自崔大大@Germey，感谢他，不用让作者再造轮子！)。
 #### 前者也就是主程序，后者是代理抓取程序，缺一不可。
