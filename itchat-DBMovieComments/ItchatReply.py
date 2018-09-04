@@ -43,6 +43,9 @@ class ItchatReply(object):
         itchat.send("Your desired movie is now under crawling... ", self.toName)
         itchat.send("lpush douban_spider:start_urls %s" % self.url, "filehelper")
 
+    def end_crawl(self):
+        pass
+
     def find_report(self):
         self.send_MongoAnalysis(self.info_dict,self.get_tbname())
 
@@ -75,11 +78,11 @@ class ItchatReply(object):
                 info_dict[tbname]["user_list"].remove(user)
                 info_dict[tbname].setdefault("path_list", path_list)
                 ItchatReply.save(info_dict)
-
+            
     def store_requirements(self):
         self.info_dict.setdefault(self.get_tbname(), {}) \
             .setdefault("user_list", []).append(self.toName)
-
+        
     @staticmethod
     def save(info_dict):
         try:
