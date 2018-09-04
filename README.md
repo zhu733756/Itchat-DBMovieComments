@@ -43,6 +43,12 @@ pip install -r requirements.txt
 python run.py
 ```
 
+## 运行主程序
+#### 进入itchat-DBMovieComment目录，运行：
+```
+python main.py
+```
+
 ## 说明：
 #### WebSpider文件夹中包含两个project
 #### itchat-DBMovieComment
