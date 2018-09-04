@@ -53,8 +53,8 @@ class MongoAnalysis(object):
         give a name to search the column name in mongodb
         :param name: colname,such as "comment_content".
         :param method:
-        if method is None,we removes the null data.
-        if method is 'average',we fills the null data with the mean value.
+        if method is None,we should remove the null data.
+        if method is 'average',we should fill the null data with the mean value.
         :return: nonempty set
         '''
         if method is None:
