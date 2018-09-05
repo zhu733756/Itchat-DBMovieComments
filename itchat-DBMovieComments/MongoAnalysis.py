@@ -24,6 +24,7 @@ class MongoAnalysis(object):
         if tbname is None:
             raise ValueError("Not get a tbname!")
         self.tbname = tbname
+        self.title=self.get_title()
         self.conn= MongoClient("localhost:27017", connect=True)
         self.db = self.conn['DBMovie']
         self.collection = self.db[self.tbname]
@@ -105,7 +106,7 @@ class MongoAnalysis(object):
                     key=key.replace(province,"").strip()
             k_lst.append(key)
         v_max=max(v_lst)
-        geo=Geo(self.get_title(),"数据来源：豆瓣电影",**self.style.init_style)
+        geo=Geo(self.title,"数据来源：豆瓣电影",**self.style.init_style)
         geo.add("",k_lst,v_lst,
                 type='effectScatter',#other styles:scatter or heatmap
                 visual_range=[0,v_max],
@@ -135,7 +136,7 @@ class MongoAnalysis(object):
         score=dict(Counter(map(self.GetStars,
                                self.GetOneCol(name="comment_score",method="average"))))
         attr,value=Geo.cast(score)
-        pie=Pie(self.get_title(),"数据来源：豆瓣电影",title_pos="center",width=900)
+        pie=Pie(self.title,"数据来源：豆瓣电影",title_pos="center",width=900)
         pie.add("",attr,value,center=[50,50],is_random=True,
                 radius=[30,75],rosetype="area",
                 is_legend_show=False,is_label_show=True)
@@ -210,7 +211,7 @@ class MongoAnalysis(object):
         '''
         from pyecharts.charts.wordcloud import WordCloud
         attr,value=self.Cast(name="comment_content")
-        wordcloud = WordCloud(self.get_title(),"数据来源：豆瓣电影",title_pos="center",width=1200, height=600)
+        wordcloud = WordCloud(self.title,"数据来源：豆瓣电影",title_pos="center",width=1200, height=600)
         wordcloud.add("", attr, value, shape="diamond",word_size_range=[20, 100])
         if self.saved_file_type is None:
             wordcloud.render(os.path.join(self.path,"wordcloud.png"))
@@ -220,8 +221,8 @@ class MongoAnalysis(object):
     def close(self):
         self.conn.close()
 
-# m=MongoAnalysis(tbname="comments_25966209")
-# m.StarMap()
-# m.AreaMap()
-# m.SimpleWordCloudMap()
-# m.close()
+m=MongoAnalysis(tbname="comments_25966209")
+m.StarMap()
+m.AreaMap()
+m.SimpleWordCloudMap()
+m.close()
