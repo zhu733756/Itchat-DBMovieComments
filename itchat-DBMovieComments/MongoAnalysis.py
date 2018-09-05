@@ -221,8 +221,8 @@ class MongoAnalysis(object):
     def close(self):
         self.conn.close()
 
-m=MongoAnalysis(tbname="comments_25966209")
-m.StarMap()
-m.AreaMap()
-m.SimpleWordCloudMap()
-m.close()
+# m=MongoAnalysis(tbname="comments_25966209")
+# m.StarMap()
+# m.AreaMap()
+# m.SimpleWordCloudMap()
+# m.close()

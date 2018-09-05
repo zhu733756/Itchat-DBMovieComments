@@ -23,7 +23,8 @@ class ItchatReply(object):
         self.redis = StrictRedis(
             connection_pool=ConnectionPool(host="localhost", port=6379))
 
-    def open_db(self):
+    @staticmethod
+    def open_db():
         try:
             f = shelve.open('.\last_saved\info')
             data=f["info"]
@@ -31,7 +32,7 @@ class ItchatReply(object):
             data={}
         finally:
             f.close()
-        print("last_saved:",data)
+        print("last_saved:\n",data)
         return data
 
     def get_tbname(self):
@@ -47,6 +48,7 @@ class ItchatReply(object):
         pass
 
     def find_report(self):
+        itchat.send("Found reports, now please wait a few seconds!", self.toName)
         self.send_MongoAnalysis(self.info_dict,self.get_tbname())
 
     @staticmethod
@@ -142,16 +144,11 @@ class ItchatRoom(object):
         if text=="crawl" and text in user_deque[0]:
             url=user_deque[0].split()[1]
             requirement=ItchatReply(url=url,toName=toName)
-            print("======")
-            print(requirement.get_tbname())
-            print(requirement.info_dict)
-            print("======")
             if requirement.get_tbname() in requirement.info_dict:
-                #说明这个表已经被爬取过
+                #说明这个表已经被爬取过或者正在爬取
                 requirement.store_requirements()
                 if  "path_list" in requirement.info_dict[requirement.get_tbname()]:
-                    #保存的图片路径
-                    itchat.send("Found reports, now please wait a few seconds!",toName)
+                    #已经保存的图片路径
                     requirement.find_report()
                     requirement.save(requirement.info_dict)
                 else:
@@ -235,7 +232,7 @@ def text_reply(msg):
         itchat.send("终于等到你,还好没放弃~~~"
                     "小可耐是不是迫不及待地想查看豆瓣电影分析？\n"
                     "官人别急，查询电影，请输入电影关键词：例如，钢铁侠\n"
-                    "友情提示：如果小主想要退出本系统继续聊天，请输入chat；\n"
+                    "如果小主想要退出本系统继续聊天，请输入chat；\n"
                     "关闭聊天系统，请输入Esc。", fromName)
         user_info["flag"]=1
         user_info["deque"]=deque(["kw"],maxlen=2)
@@ -245,13 +242,10 @@ def schedule(finished_tbname):
     itchat.auto_login(hotReload=True)
     itchat.send("Former desired request({}) has finished!"
                 .format(finished_tbname, "filehelper!"))
-    try:
-        f = shelve.open('.\last_saved\info')
-        info_data = f["info"]
-    finally:
-        f.close()
+    info_data=ItchatReply.open_db()
     ItchatReply.get_MongoAnalysis(info_data,finished_tbname)
 
 def start():
     itchat.auto_login(hotReload=True)
     itchat.run()
+
