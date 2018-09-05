@@ -101,8 +101,8 @@ class ItchatRoom(object):
         self.topicUrls={}#用来采集爬取的关键词信息
         self.dequelist={}#用来储存用户需求信息
 
-    @classmethod
-    def getResponse(self,msg):
+    @staticmethod
+    def getResponse(msg):
         '''
         返回图灵机器人对话内容
         :param msg: 用户输入的文本
