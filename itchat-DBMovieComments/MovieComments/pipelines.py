@@ -33,7 +33,6 @@ class MoviecommentsPipeline(object):
 
     def process_item(self, item, spider):
         collection=getattr(spider,"collection","comments_id_lost")
-        # collection=item["tbname"] if item["tbname"] else "comments_id_lost"
         if isinstance(item, MoviecommentsItem):
             try:
                 info = dict(item)

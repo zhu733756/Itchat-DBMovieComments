@@ -47,13 +47,12 @@ class DoubanSpider(RedisSpider):
 
     def parse_info(self,response):
         item=response.meta["item"]
-        item["city"]=response.css("div.basic-info div.user-info a::text").extract_first()
+        city=response.css("div.basic-info div.user-info a::text").extract_first()
         install_time=response.css('div.basic-info div.pl::text').extract()
-        if install_time:
-            item["install_time"]=install_time[-1][:-2].strip()
-        else:
-            item["install_time"]=""
-        item["attention_num"]=response.css('#content div div.aside p.rev-link a::text').re_first(r"\d+")
+        attention_num=response.css('#content div div.aside p.rev-link a::text').re_first(r"\d+")
+        item["city"]= city if city else ""
+        item["install_time"]= install_time[-1][:-2].strip() if install_time else ""
+        item["attention_num"]= attention_num if attention_num else ""
         yield item
 
     def spider_idle(self):

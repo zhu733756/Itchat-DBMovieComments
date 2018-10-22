@@ -25,7 +25,6 @@ class ProxyMiddleware(object):
             return False
 
     def process_request(self, request, spider):
-
         if request.meta.get('retry_times'):
             proxy = self.get_random_proxy()
             if proxy:
